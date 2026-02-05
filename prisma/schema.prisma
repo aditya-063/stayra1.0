@@ -23,11 +23,23 @@ model OtaPayload {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
-  name      String?
-  createdAt DateTime @default(now()) @map("created_at")
+  id              String    @id @default(uuid())
+  email           String    @unique
+  mobile          String?   @unique
+  password        String?   // Made optional for OAuth users
+  name            String?
+  profilePicture  String?   @map("profile_picture")
+  address         String?
+  city            String?
+  country         String?
+  dateOfBirth     DateTime? @map("date_of_birth")
+  preferences     String?   // JSON string for user preferences
+  googleId        String?   @unique @map("google_id")
+  isEmailVerified Boolean   @default(false) @map("is_email_verified")
+  isMobileVerified Boolean  @default(false) @map("is_mobile_verified")
+  lastLoginAt     DateTime? @map("last_login_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
 
   @@map("users")
 }
@@ -178,4 +190,55 @@ model Click {
   createdAt     DateTime @default(now()) @map("created_at")
 
   @@map("clicks")
+}
+
+// ==========================================================
+// AUTHENTICATION & USER MANAGEMENT
+// ==========================================================
+
+model Otp {
+  id        Int      @id @default(autoincrement())
+  identifier String  // email or mobile number
+  otp       String   // 6-digit code
+  type      String   // 'email' or 'mobile'
+  expiresAt DateTime @map("expires_at")
+  isUsed    Boolean  @default(false) @map("is_used")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([identifier])
+  @@index([expiresAt])
+  @@map("otps")
+}
+
+model PasswordResetToken {
+  id        Int      @id @default(autoincrement())
+  userId    String   @map("user_id")
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+  isUsed    Boolean  @default(false) @map("is_used")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([token])
+  @@index([userId])
+  @@map("password_reset_tokens")
+}
+
+// ==========================================================
+// DESTINATIONS
+// ==========================================================
+
+model Destination {
+  id         Int     @id @default(autoincrement())
+  city       String
+  country    String
+  region     String?
+  latitude   Decimal?
+  longitude  Decimal?
+  population Int?
+  isPopular  Boolean @default(false) @map("is_popular")
+
+  @@index([city])
+  @@index([country])
+  @@index([isPopular])
+  @@map("destinations")
 }

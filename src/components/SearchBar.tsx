@@ -1,19 +1,18 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Search, MapPin, Calendar, Users, Zap, Map, Sparkles, ChevronLeft, ChevronRight, Minus, Plus, Filter, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { format, addMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, isWithinInterval, startOfWeek, endOfWeek, addDays, isBefore } from "date-fns";
 
-const suggestions = [
-    { city: "Paris", country: "France", type: "Popular" },
-    { city: "Mumbai", country: "India", type: "Trending" },
-    { city: "Dubai", country: "UAE", type: "Luxury" },
-    { city: "Tokyo", country: "Japan", type: "Hub" },
-    { city: "London", country: "UK", type: "Classic" },
-    { city: "Goa", country: "India", type: "Beaches" }
-];
+interface Destination {
+    id: number;
+    city: string;
+    country: string;
+    region?: string;
+    isPopular: boolean;
+}
 
 interface SearchBarProps {
     onSearch: (data: any) => void;
@@ -22,6 +21,8 @@ interface SearchBarProps {
 export const SearchBar = ({ onSearch }: SearchBarProps) => {
     const [isFocused, setIsFocused] = useState(false);
     const [query, setQuery] = useState("");
+    const [destinations, setDestinations] = useState<Destination[]>([]);
+    const [loadingDestinations, setLoadingDestinations] = useState(false);
 
     // Dropdown States
     const [showSuggestions, setShowSuggestions] = useState(false);
@@ -53,6 +54,50 @@ export const SearchBar = ({ onSearch }: SearchBarProps) => {
         stars: [] as number[],
         amenities: [] as string[]
     });
+
+    // Debounced destination search
+    const fetchDestinations = useCallback(async (searchQuery: string) => {
+        if (searchQuery.length < 2) {
+            // Fetch popular destinations for empty or short queries
+            try {
+                setLoadingDestinations(true);
+                const response = await fetch(`/api/destinations?q=`);
+                const data = await response.json();
+                if (data.success) {
+                    setDestinations(data.destinations);
+                }
+            } catch (error) {
+                console.error('Failed to fetch popular destinations:', error);
+            } finally {
+                setLoadingDestinations(false);
+            }
+            return;
+        }
+
+        try {
+            setLoadingDestinations(true);
+            const response = await fetch(`/api/destinations?q=${encodeURIComponent(searchQuery)}`);
+            const data = await response.json();
+            if (data.success) {
+                setDestinations(data.destinations);
+            }
+        } catch (error) {
+            console.error('Failed to fetch destinations:', error);
+        } finally {
+            setLoadingDestinations(false);
+        }
+    }, []);
+
+    // Debounce search
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (showSuggestions) {
+                fetchDestinations(query);
+            }
+        }, 300);
+
+        return () => clearTimeout(timer);
+    }, [query, showSuggestions, fetchDestinations]);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -159,25 +204,45 @@ export const SearchBar = ({ onSearch }: SearchBarProps) => {
                             >
                                 <div className="flex items-center gap-3 px-4 py-2 mb-2 border-b border-white/5">
                                     <Sparkles className="w-4 h-4 text-gold-metallic" />
-                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/70">Destinations</span>
+                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/70">
+                                        {query.length < 2 ? 'Popular Destinations' : 'Destinations'}
+                                    </span>
+                                    {loadingDestinations && (
+                                        <div className="ml-auto">
+                                            <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="grid grid-cols-1 gap-2 max-h-[300px] overflow-y-auto">
-                                    {suggestions.filter(s => s.city.toLowerCase().includes(query.toLowerCase())).map((item, idx) => (
-                                        <button
-                                            key={idx}
-                                            type="button"
-                                            onClick={() => handleSuggestionClick(item.city)}
-                                            className="flex items-center gap-4 p-3 rounded-2xl hover:bg-white/10 transition-colors text-left group"
-                                        >
-                                            <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition-colors">
-                                                <Map className="w-5 h-5 text-white/40 group-hover:text-white" />
-                                            </div>
-                                            <div className="flex flex-col">
-                                                <span className="text-sm font-black text-white">{item.city}</span>
-                                                <span className="text-[10px] font-bold text-white/40">{item.country}</span>
-                                            </div>
-                                        </button>
-                                    ))}
+                                    {destinations.length === 0 && !loadingDestinations ? (
+                                        <div className="text-center py-8 text-white/40 text-sm">
+                                            No destinations found
+                                        </div>
+                                    ) : (
+                                        destinations.map((item, idx) => (
+                                            <button
+                                                key={idx}
+                                                type="button"
+                                                onClick={() => handleSuggestionClick(item.city)}
+                                                className="flex items-center gap-4 p-3 rounded-2xl hover:bg-white/10 transition-colors text-left group"
+                                            >
+                                                <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition-colors">
+                                                    <Map className="w-5 h-5 text-white/40 group-hover:text-white" />
+                                                </div>
+                                                <div className="flex flex-col">
+                                                    <span className="text-sm font-black text-white">{item.city}</span>
+                                                    <span className="text-[10px] font-bold text-white/40">{item.country}</span>
+                                                </div>
+                                                {item.isPopular && (
+                                                    <div className="ml-auto">
+                                                        <span className="text-[8px] font-black uppercase tracking-wider text-gold-metallic bg-gold-metallic/10 px-2 py-1 rounded-full">
+                                                            Popular
+                                                        </span>
+                                                    </div>
+                                                )}
+                                            </button>
+                                        ))
+                                    )}
                                 </div>
                             </motion.div>
                         )}

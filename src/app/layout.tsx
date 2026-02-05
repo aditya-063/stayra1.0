@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { GoldSprinkles } from "@/components/GoldSprinkles";
+import { AuthProvider } from "@/components/AuthProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -45,10 +46,12 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <div className="fixed inset-0 z-0 pointer-events-none">
-          <GoldSprinkles />
-        </div>
-        {children}
+        <AuthProvider>
+          <div className="fixed inset-0 z-0 pointer-events-none">
+            <GoldSprinkles />
+          </div>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );
