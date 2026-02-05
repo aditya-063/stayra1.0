@@ -242,3 +242,20 @@ model Destination {
   @@index([isPopular])
   @@map("destinations")
 }
+
+// ==========================================================
+// PARTNER MANAGEMENT
+// ==========================================================
+
+model Partner {
+  id          String   @id  // 'booking', 'agoda', 'expedia', 'hotelscom'
+  name        String   // 'Booking.com', 'Agoda', 'Expedia', 'Hotels.com'
+  logo        String?  // Logo URL or icon name
+  bookingType String   @map("booking_type") // 'redirect' or 'api'
+  baseUrl     String?  @map("base_url") // For affiliate redirects
+  isActive    Boolean  @default(true) @map("is_active")
+  priority    Int      @default(0) // Display order
+  createdAt   DateTime @default(now()) @map("created_at")
+  
+  @@map("partners")
+}

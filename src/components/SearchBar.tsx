@@ -117,14 +117,21 @@ export const SearchBar = ({ onSearch }: SearchBarProps) => {
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
-        onSearch({
-            location: query,
-            checkIn: dateRange.from,
-            checkOut: dateRange.to,
-            guests: guestConfig,
-            rooms: guestConfig.rooms,
-            filters
+
+        if (!query) {
+            alert('Please select a destination');
+            return;
+        }
+
+        const params = new URLSearchParams({
+            city: query,
+            ...(dateRange.from && { checkin: format(dateRange.from, 'yyyy-MM-dd') }),
+            ...(dateRange.to && { checkout: format(dateRange.to, 'yyyy-MM-dd') }),
+            guests: (guestConfig.adults + guestConfig.children).toString(),
+            rooms: guestConfig.rooms.toString(),
         });
+
+        window.location.href = `/search?${params.toString()}`;
     };
 
     // Calendar Helpers
