@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import { GoldSprinkles } from "@/components/GoldSprinkles";
 import { AuthProvider } from "@/components/AuthProvider";
@@ -16,7 +17,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Stayra | Luxury Stays, Optimized Prices",
-  description: "The intelligent hotel aggregator that finds you the perfect stay at the lowest price across every booking platform.",
+  description:
+    "The intelligent hotel aggregator that finds you the perfect stay at the lowest price across every booking platform.",
 };
 
 export default function RootLayout({
@@ -27,10 +29,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <script
-          data-noptimize="1"
-          data-cfasync="false"
-          data-wpfc-render="false"
+        {/* Website ownership verification script */}
+        <Script
+          id="ownership-verification"
+          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: `
               (function () {
@@ -47,6 +49,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <AuthProvider>
+          {/* Background Gold Sprinkles */}
           <div className="fixed inset-0 z-0 pointer-events-none">
             <GoldSprinkles />
           </div>
