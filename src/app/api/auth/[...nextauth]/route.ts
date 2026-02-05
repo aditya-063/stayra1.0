@@ -1,7 +1,7 @@
 import NextAuth, { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { PrismaClient } from "@prisma/client";
-import { generateJWT } from "@/lib/auth";
+import { generateToken } from "@/lib/auth";
 
 const prisma = new PrismaClient();
 
@@ -55,7 +55,7 @@ export const authOptions: NextAuthOptions = {
                                 name: user.name || null,
                                 profilePicture: user.image || null,
                                 isEmailVerified: true,
-                                password: null, // OAuth users don't have passwords
+                                // password is optional for OAuth users
                             }
                         });
                     }
@@ -83,10 +83,7 @@ export const authOptions: NextAuthOptions = {
 
                 if (dbUser) {
                     // Generate our custom JWT token
-                    const customToken = generateJWT({
-                        userId: dbUser.id,
-                        email: dbUser.email,
-                    });
+                    const customToken = generateToken(dbUser.id);
 
                     token.customToken = customToken;
                     token.userId = dbUser.id;

@@ -1,33 +1,43 @@
 import nodemailer from 'nodemailer';
 
-// Email configuration from environment variables
-const SMTP_HOST = process.env.SMTP_HOST || 'smtp.gmail.com';
+// SMTP Configuration
+const SMTP_HOST = process.env.SMTP_HOST;
 const SMTP_PORT = parseInt(process.env.SMTP_PORT || '587');
-const SMTP_USER = process.env.SMTP_USER || '';
-const SMTP_PASSWORD = process.env.SMTP_PASSWORD || '';
-const SMTP_FROM = process.env.SMTP_FROM || 'Stayra <no-reply@stayra.com>';
+const SMTP_USER = process.env.SMTP_USER;
+const SMTP_PASSWORD = process.env.SMTP_PASSWORD;
+const SMTP_FROM = process.env.SMTP_FROM || 'Stayra <noreply@stayra.com>';
 
-// Create reusable transporter
-const transporter = nodemailer.createTransporter({
+// Create transporter only if SMTP credentials are configured
+let transporter: nodemailer.Transporter | null = null;
+
+if (SMTP_HOST && SMTP_USER && SMTP_PASSWORD) {
+  transporter = nodemailer.createTransport({
     host: SMTP_HOST,
     port: SMTP_PORT,
     secure: SMTP_PORT === 465, // true for 465, false for other ports
     auth: {
-        user: SMTP_USER,
-        pass: SMTP_PASSWORD,
+      user: SMTP_USER,
+      pass: SMTP_PASSWORD,
     },
-});
+  });
+} else {
+  console.warn('SMTP credentials not configured. Email functionality will be disabled.');
+}
 
 /**
  * Send OTP via email
  */
 export async function sendOTPEmail(email: string, otp: string): Promise<boolean> {
-    try {
-        const mailOptions = {
-            from: SMTP_FROM,
-            to: email,
-            subject: 'Your Stayra Login OTP',
-            html: `
+  if (!transporter) {
+    console.error('Email functionality is disabled due to missing SMTP configuration.');
+    return false;
+  }
+  try {
+    const mailOptions = {
+      from: SMTP_FROM,
+      to: email,
+      subject: 'Your Stayra Login OTP',
+      html: `
         <!DOCTYPE html>
         <html>
         <head>
@@ -65,28 +75,32 @@ export async function sendOTPEmail(email: string, otp: string): Promise<boolean>
         </body>
         </html>
       `,
-        };
+    };
 
-        await transporter.sendMail(mailOptions);
-        return true;
-    } catch (error) {
-        console.error('Error sending OTP email:', error);
-        return false;
-    }
+    await transporter.sendMail(mailOptions);
+    return true;
+  } catch (error) {
+    console.error('Error sending OTP email:', error);
+    return false;
+  }
 }
 
 /**
  * Send password reset email
  */
 export async function sendPasswordResetEmail(email: string, token: string): Promise<boolean> {
-    try {
-        const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/reset-password?token=${token}`;
+  if (!transporter) {
+    console.error('Email functionality is disabled due to missing SMTP configuration.');
+    return false;
+  }
+  try {
+    const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/reset-password?token=${token}`;
 
-        const mailOptions = {
-            from: SMTP_FROM,
-            to: email,
-            subject: 'Reset Your Stayra Password',
-            html: `
+    const mailOptions = {
+      from: SMTP_FROM,
+      to: email,
+      subject: 'Reset Your Stayra Password',
+      html: `
         <!DOCTYPE html>
         <html>
         <head>
@@ -126,26 +140,30 @@ export async function sendPasswordResetEmail(email: string, token: string): Prom
         </body>
         </html>
       `,
-        };
+    };
 
-        await transporter.sendMail(mailOptions);
-        return true;
-    } catch (error) {
-        console.error('Error sending password reset email:', error);
-        return false;
-    }
+    await transporter.sendMail(mailOptions);
+    return true;
+  } catch (error) {
+    console.error('Error sending password reset email:', error);
+    return false;
+  }
 }
 
 /**
  * Send welcome email to new users
  */
 export async function sendWelcomeEmail(email: string, name: string): Promise<boolean> {
-    try {
-        const mailOptions = {
-            from: SMTP_FROM,
-            to: email,
-            subject: 'Welcome to Stayra!',
-            html: `
+  if (!transporter) {
+    console.error('Email functionality is disabled due to missing SMTP configuration.');
+    return false;
+  }
+  try {
+    const mailOptions = {
+      from: SMTP_FROM,
+      to: email,
+      subject: 'Welcome to Stayra!',
+      html: `
         <!DOCTYPE html>
         <html>
         <head>
@@ -182,12 +200,12 @@ export async function sendWelcomeEmail(email: string, name: string): Promise<boo
         </body>
         </html>
       `,
-        };
+    };
 
-        await transporter.sendMail(mailOptions);
-        return true;
-    } catch (error) {
-        console.error('Error sending welcome email:', error);
-        return false;
-    }
+    await transporter.sendMail(mailOptions);
+    return true;
+  } catch (error) {
+    console.error('Error sending welcome email:', error);
+    return false;
+  }
 }
