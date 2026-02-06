@@ -2,19 +2,53 @@
 
 import React, { useState } from "react";
 import { GoldenDustEffect } from "@/components/GoldenDustEffect";
-import { GoogleSignInButton } from "@/components/GoogleSignInButton";
 import { motion } from "framer-motion";
-import { ArrowRight, Lock, Mail } from "lucide-react";
+import { ArrowRight, Mail, Send } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-export default function LoginPage() {
+export default function OTPLoginPage() {
     const router = useRouter();
     const [identifier, setIdentifier] = useState("");
-    const [password, setPassword] = useState("");
+    const [otp, setOtp] = useState("");
+    const [otpSent, setOtpSent] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [showGoldenDust, setShowGoldenDust] = useState(false);
+
+    const handleSendOTP = async () => {
+        if (!identifier) {
+            setError("Please enter your email or mobile number");
+            return;
+        }
+
+        setLoading(true);
+        setError("");
+
+        try {
+            const response = await fetch('/api/auth/send-otp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ identifier }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                setOtpSent(true);
+                setError("");
+                if (data.otp) {
+                    alert(`Development OTP: ${data.otp}`);
+                }
+            } else {
+                setError(data.error || 'Failed to send OTP');
+            }
+        } catch (err) {
+            setError('Network error. Please try again.');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -27,8 +61,8 @@ export default function LoginPage() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     identifier,
-                    password,
-                    method: 'password',
+                    otp,
+                    method: 'otp',
                 }),
             });
 
@@ -38,9 +72,7 @@ export default function LoginPage() {
                 localStorage.setItem('token', data.token);
                 localStorage.setItem('user', JSON.stringify(data.user));
                 setShowGoldenDust(true);
-                setTimeout(() => {
-                    router.push('/');
-                }, 2500);
+                setTimeout(() => router.push('/'), 2500);
             } else {
                 setError(data.error || 'Login failed');
             }
@@ -53,7 +85,6 @@ export default function LoginPage() {
 
     return (
         <main className="min-h-screen relative bg-gradient-to-br from-amber-50/30 via-yellow-50/30 to-orange-50/30">
-            {/* Simple Logo Header */}
             <div className="absolute top-6 left-6 z-20">
                 <Link href="/" className="flex items-center gap-2 group cursor-pointer">
                     <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#4a044e] to-[#2e0231] border border-white/10 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform relative overflow-hidden">
@@ -66,7 +97,6 @@ export default function LoginPage() {
                 </Link>
             </div>
 
-            {/* Flowing Golden Wave Background - Paler Colors - FIXED */}
             <div className="fixed inset-0 overflow-hidden z-0">
                 {[0, 1, 2, 3, 4, 5].map((waveIndex) => (
                     <motion.div
@@ -81,10 +111,7 @@ export default function LoginPage() {
                     >
                         <svg className="absolute w-full h-full" viewBox="0 0 1440 320" preserveAspectRatio="none" style={{ filter: 'blur(2px)' }}>
                             <motion.path
-                                d={`M0,${160 + waveIndex * 15} 
-                                    C240,${120 + waveIndex * 10} 360,${200 + waveIndex * 10} 720,${160 + waveIndex * 15} 
-                                    C1080,${120 + waveIndex * 20} 1200,${200 + waveIndex * 10} 1440,${160 + waveIndex * 15} 
-                                    L1440,320 L0,320 Z`}
+                                d={`M0,${160 + waveIndex * 15} C240,${120 + waveIndex * 10} 360,${200 + waveIndex * 10} 720,${160 + waveIndex * 15} C1080,${120 + waveIndex * 20} 1200,${200 + waveIndex * 10} 1440,${160 + waveIndex * 15} L1440,320 L0,320 Z`}
                                 fill={`url(#paleGradient${waveIndex})`}
                                 animate={{
                                     d: [
@@ -108,7 +135,6 @@ export default function LoginPage() {
                     </motion.div>
                 ))}
 
-                {/* Golden Sprinkles on Wave Edges - More Visible */}
                 {Array.from({ length: 100 }).map((_, i) => (
                     <motion.div
                         key={`particle-${i}`}
@@ -140,8 +166,7 @@ export default function LoginPage() {
                 ))}
             </div>
 
-            {/* 3D Login Card - Scaled Down for 100% Zoom */}
-            <div className="min-h-screen flex items-center justify-center px-4 py-20 relative z-10">
+            <div className="min-h-screen flex items-center justify-center px-4 pt-16 relative z-10">
                 <motion.div
                     initial={{ opacity: 0, y: 40, scale: 0.9 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -150,7 +175,7 @@ export default function LoginPage() {
                     style={{ perspective: '1000px' }}
                 >
                     <div
-                        className="relative rounded-[2.5rem] overflow-hidden px-8 py-12 md:px-12 md:py-16"
+                        className="relative rounded-[2.5rem] overflow-hidden px-6 py-8 md:px-10 md:py-10"
                         style={{
                             background: 'linear-gradient(145deg, #e8e8e8, #f5f5f5)',
                             boxShadow: `
@@ -168,12 +193,9 @@ export default function LoginPage() {
                         <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-[#4a044e] via-yellow-400 to-[#4a044e]" />
                         <div className="absolute bottom-0 left-0 w-full h-1.5 bg-gradient-to-r from-[#4a044e] via-yellow-400 to-[#4a044e]" />
 
-                        <div className="text-center mb-8 space-y-3">
-                            <h1 className="text-4xl md:text-5xl font-black text-neutral-900 tracking-tighter leading-tight">
-                                Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#4a044e] via-[#a21caf] to-[#4a044e]">perfect stay</span>
-                                <br />is one search away.
-                            </h1>
-                            <p className="text-base text-neutral-500 font-bold">Welcome Back</p>
+                        <div className="text-center mb-6">
+                            <h1 className="text-2xl font-black text-[#4a044e] tracking-tight mb-1.5">Sign In with OTP</h1>
+                            <p className="text-neutral-600 font-medium text-sm">We'll send you a one-time password</p>
                         </div>
 
                         {error && (
@@ -186,7 +208,7 @@ export default function LoginPage() {
                             </motion.div>
                         )}
 
-                        <form className="space-y-4" onSubmit={handleLogin}>
+                        <form onSubmit={handleLogin} className="space-y-4">
                             <div className="space-y-1.5">
                                 <label className="text-[10px] font-black uppercase tracking-widest text-neutral-500 ml-3">
                                     Email or Mobile Number
@@ -197,70 +219,68 @@ export default function LoginPage() {
                                     </div>
                                     <input
                                         type="text"
-                                        placeholder="you@example.com or +1 234 567 8900"
                                         value={identifier}
                                         onChange={(e) => setIdentifier(e.target.value)}
+                                        placeholder="you@example.com or +1 234 567 8900"
                                         className="w-full bg-white h-11 rounded-xl pl-12 pr-5 border-2 border-neutral-200 focus:outline-none focus:ring-2 focus:ring-[#4a044e]/20 focus:border-[#4a044e] transition-all font-bold text-sm text-neutral-800 placeholder:text-neutral-400/80 shadow-sm"
                                         style={{ boxShadow: 'inset 2px 2px 5px rgba(0, 0, 0, 0.05)' }}
                                         required
+                                        disabled={otpSent}
                                     />
                                 </div>
                             </div>
 
-                            <div className="space-y-1.5">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-neutral-500 ml-3">Password</label>
-                                <div className="relative group">
-                                    <div className="absolute left-5 top-1/2 -translate-y-1/2 text-neutral-400 group-focus-within:text-[#4a044e] transition-colors">
-                                        <Lock className="w-4 h-4" />
+                            {!otpSent ? (
+                                <button
+                                    type="button"
+                                    onClick={handleSendOTP}
+                                    disabled={loading}
+                                    className="w-full bg-gradient-to-r from-[#4a044e] to-[#701a75] hover:shadow-xl text-white font-black h-11 rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-md hover:scale-[1.02] active:scale-[0.98] text-sm"
+                                >
+                                    {loading ? 'Sending...' : 'Send OTP'}
+                                    {!loading && <Send className="w-4 h-4" />}
+                                </button>
+                            ) : (
+                                <>
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-neutral-500 ml-3">
+                                            Enter OTP
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={otp}
+                                            onChange={(e) => setOtp(e.target.value)}
+                                            placeholder="••••••"
+                                            className="w-full bg-white h-11 rounded-xl px-5 border-2 border-neutral-200 focus:outline-none focus:ring-2 focus:ring-[#4a044e]/20 focus:border-[#4a044e] transition-all font-black text-neutral-800 placeholder:text-neutral-400/80 shadow-sm text-center text-xl tracking-widest"
+                                            style={{ boxShadow: 'inset 2px 2px 5px rgba(0, 0, 0, 0.05)' }}
+                                            maxLength={6}
+                                            required
+                                        />
                                     </div>
-                                    <input
-                                        type="password"
-                                        placeholder="••••••••"
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                        className="w-full bg-white h-11 rounded-xl pl-12 pr-5 border-2 border-neutral-200 focus:outline-none focus:ring-2 focus:ring-[#4a044e]/20 focus:border-[#4a044e] transition-all font-bold text-sm text-neutral-800 placeholder:text-neutral-400/80 shadow-sm"
-                                        style={{ boxShadow: 'inset 2px 2px 5px rgba(0, 0, 0, 0.05)' }}
-                                        required
-                                    />
-                                </div>
-                            </div>
 
-                            <button
-                                type="submit"
-                                disabled={loading}
-                                className="w-full bg-gradient-to-r from-[#4a044e] to-[#701a75] hover:shadow-xl text-white font-black h-11 rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:scale-[1.02] active:scale-[0.98] text-sm"
-                            >
-                                {loading ? 'Signing In...' : 'Sign In'}
-                                {!loading && <ArrowRight className="w-4 h-4" />}
-                            </button>
+                                    <button
+                                        type="submit"
+                                        disabled={loading}
+                                        className="w-full bg-gradient-to-r from-[#4a044e] to-[#701a75] hover:shadow-xl text-white font-black h-11 rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-md hover:scale-[1.02] active:scale-[0.98] text-sm"
+                                    >
+                                        {loading ? 'Verifying...' : 'Verify & Sign In'}
+                                        {!loading && <ArrowRight className="w-4 h-4" />}
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => { setOtpSent(false); setOtp(""); }}
+                                        className="w-full text-neutral-600 hover:text-[#4a044e] text-xs font-bold transition"
+                                    >
+                                        Change number / Resend OTP
+                                    </button>
+                                </>
+                            )}
                         </form>
 
-                        <div className="mt-4 flex items-center justify-between text-xs">
-                            <Link href="/login/otp" className="text-neutral-600 hover:text-[#4a044e] font-bold transition">
-                                Sign in using OTP
-                            </Link>
-                            <Link href="/forgot-password" className="text-neutral-600 hover:text-[#4a044e] font-bold transition">
-                                Forgot Password?
-                            </Link>
-                        </div>
-
-                        <div className="relative my-5">
-                            <div className="absolute inset-0 flex items-center">
-                                <div className="w-full border-t border-neutral-300"></div>
-                            </div>
-                            <div className="relative flex justify-center text-[10px]">
-                                <span className="px-3 bg-gradient-to-r from-[#f5f5f5] to-[#e8e8e8] text-neutral-500 font-black uppercase tracking-widest">
-                                    Or
-                                </span>
-                            </div>
-                        </div>
-
-                        <GoogleSignInButton />
-
                         <p className="mt-5 text-center text-xs text-neutral-600 font-medium">
-                            Don't have an account?{' '}
-                            <Link href="/signup" className="text-[#4a044e] font-black hover:underline">
-                                Sign Up
+                            <Link href="/login" className="text-[#4a044e] font-black hover:underline">
+                                ← Back to Password Login
                             </Link>
                         </p>
                     </div>

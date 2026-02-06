@@ -37,10 +37,25 @@ export const HotelCard = ({ hotel, onSelectRooms }: HotelCardProps) => {
             initial={{ opacity: 0, scale: 0.95 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true, margin: "-50px" }}
-            className="glass-3d glass-3d-collection flex flex-col lg:flex-row h-full group border-none rounded-[2.5rem] overflow-hidden transition-all duration-500 hover:shadow-[0_40px_80px_-20px_rgba(212,175,55,0.4)] hover:border-[#fcd34d]/40"
+            whileHover={{
+                scale: 1.03,
+                y: -10,
+                transition: { duration: 0.4, ease: "easeOut" }
+            }}
+            style={{
+                perspective: '2000px',
+                transformStyle: 'preserve-3d'
+            }}
+            className="glass-3d glass-3d-collection flex flex-col lg:flex-row h-full group border-none rounded-[2.5rem] overflow-hidden transition-all duration-500 hover:shadow-[0_50px_100px_-20px_rgba(74,4,78,0.3),0_30px_60px_-30px_rgba(251,191,36,0.4)] cursor-pointer"
+            onMouseEnter={(e: any) => {
+                e.currentTarget.style.transform = 'translateZ(30px) rotateX(-2deg)';
+            }}
+            onMouseLeave={(e: any) => {
+                e.currentTarget.style.transform = 'translateZ(0px) rotateX(0deg)';
+            }}
         >
             {/* Floating Image Section */}
-            <div className="lg:w-[45%] relative min-h-[300px] lg:min-h-[400px] p-4 lg:p-6">
+            <div className="lg:w-[45%] relative min-h-[450px] lg:min-h-[550px] p-4 lg:p-6">
                 <div className="relative w-full h-full overflow-hidden rounded-[2rem] shadow-2xl">
                     <img
                         src={hotel.primaryImageUrl}

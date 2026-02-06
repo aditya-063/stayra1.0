@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Navbar } from "@/components/Navbar";
+import { FlowingWaveBackground } from "@/components/FlowingWaveBackground";
 import { SearchBar } from "@/components/SearchBar";
 import { HotelCard } from "@/components/HotelCard";
 import { RoomComparisonModal } from "@/components/RoomComparisonModal";
@@ -60,7 +61,8 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen relative pb-32">
+    <main className="min-h-screen relative pb-32 bg-gradient-to-br from-amber-50/30 via-yellow-50/30 to-orange-50/30">
+      <FlowingWaveBackground />
       <Navbar />
 
       {/* Hero Section */}
@@ -74,22 +76,46 @@ export default function Home() {
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
             className="text-center space-y-4"
           >
-            <div className="inline-flex items-center gap-2 bg-white/40 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/40 shadow-sm mb-4">
-              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              <span className="text-[10px] font-black uppercase tracking-widest text-[#4a044e]">Live Pricing Enabled</span>
-            </div>
-            <h1 className="text-5xl md:text-7xl font-black text-neutral-900 tracking-tighter leading-[0.9]">
+            <motion.h1
+              className="text-5xl md:text-7xl font-black text-neutral-900 tracking-tighter leading-[0.9] cursor-default"
+              whileHover={{
+                scale: 1.05,
+                y: -5,
+                transition: { duration: 0.3, ease: "easeOut" }
+              }}
+              style={{ perspective: '1000px', transformStyle: 'preserve-3d' }}
+            >
               Find your <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#4a044e] via-[#a21caf] to-[#4a044e] animate-gradient">perfect stay</span>
               <br />across all platforms.
-            </h1>
+            </motion.h1>
             <p className="text-lg text-neutral-500 font-medium max-w-2xl mx-auto leading-relaxed">
               Stayra aggregates real-time prices from Booking.com, Agoda, Expedia, and more to ensure you never overpay for luxury.
             </p>
           </motion.div>
 
-          <div className="w-full">
-            <SearchBar onSearch={handleSearch} />
-          </div>
+          <motion.div
+            className="w-full"
+            style={{ perspective: '1000px' }}
+            whileHover={{
+              scale: 1.02,
+              transition: { duration: 0.3, ease: 'easeOut' }
+            }}
+          >
+            <div
+              style={{
+                transformStyle: 'preserve-3d',
+                transition: 'transform 0.3s ease-out',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateZ(20px)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateZ(0px)';
+              }}
+            >
+              <SearchBar onSearch={handleSearch} />
+            </div>
+          </motion.div>
         </div>
       </section>
 

@@ -493,21 +493,6 @@ export const SearchBar = ({ onSearch }: SearchBarProps) => {
                 </div>
             </motion.form>
 
-            {/* Trust Badges - now slightly lower to clear drop shadows */}
-            <div className="absolute -bottom-16 left-1/2 -translate-x-1/2 flex items-center gap-8 whitespace-nowrap overflow-hidden opacity-40 pointer-events-none">
-                <div className="flex items-center gap-2 text-[10px] font-black tracking-widest uppercase">
-                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full" />
-                    Zero Platform Fees
-                </div>
-                <div className="flex items-center gap-2 text-[10px] font-black tracking-widest uppercase">
-                    <div className="w-1.5 h-1.5 bg-purple-500 rounded-full" />
-                    Comparison Guaranteed
-                </div>
-                <div className="flex items-center gap-2 text-[10px] font-black tracking-widest uppercase">
-                    <div className="w-1.5 h-1.5 bg-gold-metallic rounded-full" />
-                    Direct OTA Redirect
-                </div>
-            </div>
         </div>
     );
 };

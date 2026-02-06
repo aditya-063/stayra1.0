@@ -4,11 +4,11 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface GoldenDustEffectProps {
-    show: boolean;
+    show?: boolean;
     onComplete?: () => void;
 }
 
-export const GoldenDustEffect = ({ show, onComplete }: GoldenDustEffectProps) => {
+export const GoldenDustEffect = ({ show = true, onComplete }: GoldenDustEffectProps) => {
     const [particles, setParticles] = useState<any[]>([]);
 
     useEffect(() => {
